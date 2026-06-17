@@ -6,7 +6,7 @@ import {
   MoveMouseSchema,
 } from "../src/shared/schemas";
 
-describe("reconstructed command schemas", () => {
+describe("command schemas", () => {
   it("parses CDP command payloads", () => {
     expect(
       CdpCommandSchema.parse({
@@ -21,6 +21,21 @@ describe("reconstructed command schemas", () => {
     ).toMatchObject({
       target: { tabId: 123 },
       method: "Runtime.evaluate",
+    });
+  });
+
+  it("accepts current browser-client payloads without browser_id", () => {
+    expect(
+      CdpCommandSchema.parse({
+        session_id: "session",
+        turn_id: "turn",
+        target: { tabId: 123 },
+        method: "Runtime.evaluate",
+      }),
+    ).toMatchObject({
+      session_id: "session",
+      turn_id: "turn",
+      target: { tabId: 123 },
     });
   });
 

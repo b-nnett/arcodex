@@ -3,7 +3,7 @@
   "manifest_version": 3,
   "name": "Codex (OS Extension)",
   "description": "Control Chrome with Codex.",
-  "version": "1.1.13",
+  "version": "1.1.14",
   "icons": {
     "16": "images/icon16.png",
     "32": "images/icon32.png",

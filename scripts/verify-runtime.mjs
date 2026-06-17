@@ -29,10 +29,8 @@ const extensionDir = path.resolve(scriptDir, "..");
 const distDir = process.env.EXTENSION_DIR
   ? path.resolve(process.env.EXTENSION_DIR)
   : path.resolve(extensionDir, "dist");
-const nativeHostManifestPath = path.join(
-  os.homedir(),
-  "Library/Application Support/Google/Chrome/NativeMessagingHosts/com.openai.codexextension.json",
-);
+const nativeHostName = "com.openai.codexextension";
+const nativeHostPath = path.join(scriptDir, "codex-native-host-bridge");
 
 const checks = [];
 
@@ -44,6 +42,9 @@ async function main() {
     throw new Error(
       `Build output not found at ${distDir}. Run npm run build first.`,
     );
+  }
+  if (!existsSync(nativeHostPath)) {
+    throw new Error(`Native bridge script not found at ${nativeHostPath}`);
   }
   if (!["flag", "pipe"].includes(CHROME_LOAD_MODE)) {
     throw new Error(
@@ -427,17 +428,24 @@ async function addManifestKey(extensionPath) {
 }
 
 async function seedNativeHostManifest(profileDir) {
-  if (!existsSync(nativeHostManifestPath)) {
-    return;
-  }
+  const manifest = `${JSON.stringify(
+    {
+      allowed_origins: [`chrome-extension://${EXTENSION_ID}/`],
+      description: "Arcodex Codex chrome native messaging host bridge",
+      name: nativeHostName,
+      path: nativeHostPath,
+      type: "stdio",
+    },
+    null,
+    2,
+  )}\n`;
 
-  const manifest = await readFile(nativeHostManifestPath, "utf8");
   for (const dir of [
     path.join(profileDir, "NativeMessagingHosts"),
     path.join(profileDir, "Default/NativeMessagingHosts"),
   ]) {
     await mkdir(dir, { recursive: true });
-    await writeFile(path.join(dir, "com.openai.codexextension.json"), manifest);
+    await writeFile(path.join(dir, `${nativeHostName}.json`), manifest);
   }
 }
 

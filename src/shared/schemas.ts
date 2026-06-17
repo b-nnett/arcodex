@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const BrowserIdSchema = z.object({
-  browser_id: z.string(),
+  browser_id: z.string().optional(),
 });
 
 export const BrowserTurnSchema = BrowserIdSchema.extend({

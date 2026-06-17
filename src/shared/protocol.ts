@@ -2,7 +2,7 @@ import type { BuildChannel } from "./buildChannel";
 
 export const EXTENSION_NAME = "Codex (OS Extension)";
 export const EXTENSION_DESCRIPTION = "Control Chrome with Codex.";
-export const EXTENSION_VERSION = "1.1.13";
+export const EXTENSION_VERSION = "1.1.14";
 
 export const LEARN_MORE_URL =
   "https://developers.openai.com/codex/app/chrome-extension";
@@ -164,7 +164,7 @@ export function errorMessage(error: unknown): string {
 }
 
 export type BrowserIdPayload = {
-  browser_id: string;
+  browser_id?: string;
 };
 
 export type BrowserTurnPayload = BrowserIdPayload & {
