@@ -22,11 +22,18 @@ Download the prebuilt release from [Arcodex Extension 1.1.14](https://github.com
 
 If Chrome refuses the ZIP, unzip it and use `Load unpacked` on the extracted folder.
 
-For Codex connectivity from this checkout, install the native bridge:
+## Connect To Codex
+
+The extension also needs a local Native Messaging bridge. Chrome and Arc use that bridge to let Codex talk to the extension; the extension ZIP cannot register it by itself.
+
+From a cloned copy of this repo, run:
 
 ```sh
+npm install
 npm run install:native-bridge
 ```
+
+The installer registers the bridge for Chrome and Arc, and backs up any existing native-host manifest first.
 
 ## Develop
 
