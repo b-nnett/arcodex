@@ -1,3 +1,4 @@
 dist/
+extension_downloads/
 node_modules/
 scripts/codex-native-host-bridge-bin

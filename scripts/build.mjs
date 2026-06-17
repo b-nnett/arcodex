@@ -12,7 +12,7 @@ import { build } from "vite";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const dist = resolve(root, "dist");
-const reconstructionImages = resolve(root, "src/images");
+const imageSourceDir = resolve(root, "src/images");
 const extensionPublicKey =
   "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAr5M/DZ28sAuOnk9v8C2IPTLNEZ0F0pv9qwRzMAbGbE0NB6I6T+wS6Na2n0sbQOK98iezN2FX26dsBWMELXtf4YCETdRiFSBOnNhZObZdrxeTTrhk1AhKA/Id5vgDWfSZ3Q+9BjBWHYK9yuTGo3PMK/yOW/CH6cSn07btvn7Aq+t+KrAwGOJewCN7gGojOrshJs/YwdxwxpUnb7s6QbFGkPKg9G6as4y4ipQ8fiQHRAcKm+mUK/CoCVSL+c4Yog0CSJqEEaruOeh8CgM4V0LX4kw5rs/4THAvTwtYRsW0n3faVR7uGj1eadsWuKciQHxpRMI9I4EE7yuaxavv3Agf6QIDAQAB";
 const manifest = JSON.parse(
@@ -69,7 +69,7 @@ for (const image of [
   "icon48.png",
   "icon128.png",
 ]) {
-  cpSync(resolve(reconstructionImages, image), resolve(dist, "images", image), {
+  cpSync(resolve(imageSourceDir, image), resolve(dist, "images", image), {
     force: true,
     recursive: true,
   });

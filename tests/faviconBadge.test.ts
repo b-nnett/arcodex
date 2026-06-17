@@ -9,7 +9,7 @@ import {
 const faviconDataUrl =
   "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADElEQVR42mP8z8BQDwAFgwJ/lcHfKAAAAABJRU5ErkJggg==";
 
-describe("favicon badge reconstruction", () => {
+describe("favicon badge handling", () => {
   beforeEach(() => {
     document.head.innerHTML = "";
   });

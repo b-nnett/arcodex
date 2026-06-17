@@ -85,8 +85,7 @@ export class TabGroups {
   }
 
   async refreshManagedGroupsFromChrome(): Promise<void> {
-    // The shipped extension persists more group bookkeeping. The clean
-    // reconstruction keeps Chrome as the source of truth for first-pass parity.
+    // Chrome remains the source of truth for current tab group membership.
   }
 
   private async findManagedGroupContainingTabs(
