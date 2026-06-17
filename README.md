@@ -24,16 +24,16 @@ If Chrome refuses the ZIP, unzip it and use `Load unpacked` on the extracted fol
 
 ## Connect To Codex
 
-The extension also needs a local Native Messaging bridge. Chrome and Arc use that bridge to let Codex talk to the extension; the extension ZIP cannot register it by itself.
+Codex talks to the extension through a local Native Messaging bridge. If your existing Codex browser setup already registered that bridge, the extension should connect automatically after install.
 
-From a cloned copy of this repo, run:
+If the extension shows disconnected, or Codex cannot see browser tabs, repair the bridge from a cloned copy of this repo:
 
 ```sh
 npm install
 npm run install:native-bridge
 ```
 
-The installer registers the bridge for Chrome and Arc, and backs up any existing native-host manifest first.
+The installer registers the bridge for Chrome and Arc, and backs up any existing native-host manifest first. The extension ZIP cannot register this host by itself.
 
 ## Develop
 
