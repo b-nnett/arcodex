@@ -20,6 +20,9 @@ const CHROME_BINARY =
   (existsSync(PLAYWRIGHT_CHROME_FOR_TESTING)
     ? PLAYWRIGHT_CHROME_FOR_TESTING
     : "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome");
+const CHROME_LOAD_MODE =
+  process.env.CHROME_LOAD_MODE ??
+  (path.basename(CHROME_BINARY) === "Google Chrome" ? "pipe" : "flag");
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const extensionDir = path.resolve(scriptDir, "..");
@@ -42,6 +45,11 @@ async function main() {
       `Build output not found at ${distDir}. Run npm run build first.`,
     );
   }
+  if (!["flag", "pipe"].includes(CHROME_LOAD_MODE)) {
+    throw new Error(
+      `Unsupported CHROME_LOAD_MODE=${CHROME_LOAD_MODE}. Use "flag" or "pipe".`,
+    );
+  }
   const loadedManifest = JSON.parse(
     await readFile(path.join(distDir, "manifest.json"), "utf8"),
   );
@@ -59,54 +67,69 @@ async function main() {
     await addManifestKey(extensionDir);
     await seedNativeHostManifest(userDataDir);
 
-    const port = await getFreePort();
+    const port = CHROME_LOAD_MODE === "flag" ? await getFreePort() : null;
     const fixture = await startFixtureServer();
     fixtureServer = fixture.server;
 
-    chromeProcess = spawn(
-      CHROME_BINARY,
-      [
-        `--user-data-dir=${userDataDir}`,
-        `--remote-debugging-address=${HOST}`,
-        `--remote-debugging-port=${port}`,
-        `--disable-extensions-except=${extensionDir}`,
-        `--load-extension=${extensionDir}`,
-        "--no-first-run",
-        "--no-default-browser-check",
-        "--disable-background-networking",
-        "--disable-sync",
-        "--disable-features=DialMediaRouteProvider",
-        "--enable-unsafe-extension-debugging",
-        "about:blank",
-      ],
-      { stdio: ["ignore", "ignore", "pipe"] },
-    );
+    const chromeArgs =
+      CHROME_LOAD_MODE === "pipe"
+        ? [
+            `--user-data-dir=${userDataDir}`,
+            "--remote-debugging-pipe",
+            "--no-first-run",
+            "--no-default-browser-check",
+            "--disable-background-networking",
+            "--disable-sync",
+            "--disable-features=DialMediaRouteProvider",
+            "--enable-unsafe-extension-debugging",
+            "about:blank",
+          ]
+        : [
+            `--user-data-dir=${userDataDir}`,
+            `--remote-debugging-address=${HOST}`,
+            `--remote-debugging-port=${port}`,
+            `--disable-extensions-except=${extensionDir}`,
+            `--load-extension=${extensionDir}`,
+            "--no-first-run",
+            "--no-default-browser-check",
+            "--disable-background-networking",
+            "--disable-sync",
+            "--disable-features=DialMediaRouteProvider",
+            "--enable-unsafe-extension-debugging",
+            "about:blank",
+          ];
+
+    chromeProcess = spawn(CHROME_BINARY, chromeArgs, {
+      stdio:
+        CHROME_LOAD_MODE === "pipe"
+          ? ["ignore", "ignore", "pipe", "pipe", "pipe"]
+          : ["ignore", "ignore", "pipe"],
+    });
 
     let stderr = "";
     chromeProcess.stderr.on("data", (chunk) => {
       stderr += String(chunk);
     });
 
-    try {
-      await waitFor(
-        async () => fetchJson(`http://${HOST}:${port}/json/version`),
-        {
-          label: "Chrome remote debugging endpoint",
-          timeoutMs: 12_000,
-        },
-      );
-    } catch (error) {
-      throw new Error(
-        `${error.message}\nChrome stderr:\n${stderr.slice(-4000)}`,
-      );
-    }
+    const browser =
+      CHROME_LOAD_MODE === "pipe"
+        ? new PipeCdpSession(chromeProcess)
+        : await connectWebSocketBrowser(port, () => stderr);
 
-    const browserVersion = await fetchJson(
-      `http://${HOST}:${port}/json/version`,
-    );
-    const browser = await CdpSession.connect(
-      browserVersion.webSocketDebuggerUrl,
-    );
+    if (CHROME_LOAD_MODE === "pipe") {
+      await browser.send("Browser.getVersion");
+      const loadedExtension = await browser.send("Extensions.loadUnpacked", {
+        path: extensionDir,
+      });
+      record("Extension loads through Chrome CDP", () => {
+        if (loadedExtension.id !== EXTENSION_ID) {
+          throw new Error(
+            `Expected extension id ${EXTENSION_ID}, got ${loadedExtension.id}`,
+          );
+        }
+        return { loadMode: CHROME_LOAD_MODE, id: loadedExtension.id };
+      });
+    }
 
     const popup = await openTarget(
       browser,
@@ -489,6 +512,14 @@ async function readFaviconState(popup, tabId) {
 
 async function openTarget(browser, port, url) {
   const { targetId } = await browser.send("Target.createTarget", { url });
+  if (port == null) {
+    const { sessionId } = await browser.send("Target.attachToTarget", {
+      targetId,
+      flatten: true,
+    });
+    return new AttachedTargetSession(browser, targetId, sessionId);
+  }
+
   const target = await waitFor(
     async () => {
       const targets = await fetchJson(`http://${HOST}:${port}/json/list`);
@@ -497,6 +528,25 @@ async function openTarget(browser, port, url) {
     { label: `target ${url}`, timeoutMs: 8_000 },
   );
   return CdpSession.connect(target.webSocketDebuggerUrl);
+}
+
+async function connectWebSocketBrowser(port, readStderr) {
+  try {
+    await waitFor(
+      async () => fetchJson(`http://${HOST}:${port}/json/version`),
+      {
+        label: "Chrome remote debugging endpoint",
+        timeoutMs: 12_000,
+      },
+    );
+  } catch (error) {
+    throw new Error(
+      `${error.message}\nChrome stderr:\n${readStderr().slice(-4000)}`,
+    );
+  }
+
+  const browserVersion = await fetchJson(`http://${HOST}:${port}/json/version`);
+  return CdpSession.connect(browserVersion.webSocketDebuggerUrl);
 }
 
 async function evaluate(session, expression) {
@@ -630,6 +680,85 @@ class CdpSession {
   close() {
     this.socket.close();
   }
+}
+
+class AttachedTargetSession {
+  constructor(browser, targetId, sessionId) {
+    this.browser = browser;
+    this.targetId = targetId;
+    this.sessionId = sessionId;
+  }
+
+  send(method, params = {}) {
+    return this.browser.send(method, params, this.sessionId);
+  }
+
+  close() {
+    return this.browser.send("Target.closeTarget", {
+      targetId: this.targetId,
+    });
+  }
+}
+
+class PipeCdpSession {
+  constructor(process) {
+    this.process = process;
+    this.nextId = 1;
+    this.pending = new Map();
+    this.buffer = Buffer.alloc(0);
+    this.process.stdio[4].on("data", (chunk) => {
+      this.buffer = Buffer.concat([this.buffer, chunk]);
+      this.processBufferedMessages();
+    });
+  }
+
+  processBufferedMessages() {
+    while (true) {
+      const delimiter = this.buffer.indexOf(0);
+      if (delimiter === -1) {
+        return;
+      }
+      const payload = this.buffer.subarray(0, delimiter).toString("utf8");
+      this.buffer = this.buffer.subarray(delimiter + 1);
+      if (!payload) {
+        continue;
+      }
+      const message = JSON.parse(payload);
+      if (!message.id) {
+        continue;
+      }
+      const pending = this.pending.get(message.id);
+      if (!pending) {
+        continue;
+      }
+      this.pending.delete(message.id);
+      if (message.error) {
+        pending.reject(new Error(message.error.message));
+      } else {
+        pending.resolve(message.result ?? {});
+      }
+    }
+  }
+
+  send(method, params = {}, sessionId = null) {
+    const id = this.nextId;
+    this.nextId += 1;
+    const message = { id, method, params };
+    if (sessionId) {
+      message.sessionId = sessionId;
+    }
+    this.process.stdio[3].write(`${JSON.stringify(message)}\0`);
+    return new Promise((resolve, reject) => {
+      this.pending.set(id, { resolve, reject });
+      setTimeout(() => {
+        if (this.pending.delete(id)) {
+          reject(new Error(`Timed out waiting for CDP method ${method}`));
+        }
+      }, 60_000).unref?.();
+    });
+  }
+
+  close() {}
 }
 
 await main();

@@ -35,6 +35,8 @@ npm run install:native-bridge
 npm install
 npm run check
 npm run check:runtime
+
+CHROME_BINARY="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" VERIFY_APP_SERVER=1 npm run verify:runtime
 ```
 
 Build a fresh release:
