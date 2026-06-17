@@ -1,0 +1,11 @@
+#!/bin/sh
+set -eu
+
+SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+NODE_BIN="/Applications/Codex.app/Contents/Resources/cua_node/bin/node"
+
+if [ ! -x "$NODE_BIN" ]; then
+  NODE_BIN="node"
+fi
+
+exec "$NODE_BIN" "$SCRIPT_DIR/codex-native-host-bridge.mjs" "$@"

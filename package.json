@@ -1,0 +1,34 @@
+{
+  "name": "arcodex-extension",
+  "private": true,
+  "version": "1.1.13",
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "check": "npm run lint && npm run typecheck && npm test && npm audit --audit-level=high --omit=optional && npm run build",
+    "check:runtime": "VERIFY_APP_SERVER=1 npm run verify:runtime",
+    "format": "biome check --write .",
+    "install:native-bridge": "node scripts/install-native-host-bridge.mjs",
+    "lint": "biome ci .",
+    "package:release": "npm run build && node scripts/package-release.mjs",
+    "verify:runtime": "node scripts/verify-runtime.mjs",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@vitejs/plugin-react": "^6.0.2",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "typescript": "^5.8.0",
+    "vite": "^8.0.16",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.5.0",
+    "@types/chrome": "^0.1.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "jsdom": "^26.0.0",
+    "vitest": "^4.1.9"
+  }
+}

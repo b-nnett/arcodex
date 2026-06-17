@@ -1,0 +1,185 @@
+:root {
+  color-scheme: light dark;
+  font-family:
+    "OpenAI Sans", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", sans-serif;
+  color: #1c1c1c;
+  background: #ffffff;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    color: #dcdcdc;
+    background: #212121;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}
+
+a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.popup {
+  width: 360px;
+  padding: 16px;
+  background: light-dark(#ffffff, #212121);
+  color: light-dark(#1c1c1c, #dcdcdc);
+}
+
+.popup-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.popup-header {
+  padding: 4px 8px 8px;
+  text-align: center;
+}
+
+.popup-logo {
+  width: 28px;
+  height: 28px;
+  display: inline-block;
+  color: inherit;
+}
+
+.popup-header h1 {
+  margin: 12px 0 0;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: 0;
+}
+
+.status-card {
+  overflow: hidden;
+  border: 1px solid light-dark(#0000000d, #ffffff1f);
+  border-radius: 8px;
+  background: light-dark(#f9f9f9, #181818);
+  padding: 8px 12px;
+}
+
+.status-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.status-pill {
+  display: inline-flex;
+  max-width: 100%;
+  height: 24px;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid;
+  border-radius: 999px;
+  padding: 0 8px;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+}
+
+.status-pill-connected {
+  border-color: light-dark(
+    color-mix(in oklab, #04b84c 8%, transparent),
+    color-mix(in oklab, #04b84c 15%, transparent)
+  );
+  background: light-dark(
+    color-mix(in oklab, #04b84c 8%, transparent),
+    color-mix(in oklab, #04b84c 15%, transparent)
+  );
+  color: light-dark(#008635, #40c977);
+}
+
+.status-pill-disconnected {
+  border-color: light-dark(
+    color-mix(in oklab, #fa423e 8%, transparent),
+    color-mix(in oklab, #fa423e 16%, transparent)
+  );
+  background: light-dark(
+    color-mix(in oklab, #fa423e 8%, transparent),
+    color-mix(in oklab, #fa423e 16%, transparent)
+  );
+  color: light-dark(#ba2623, #ff6764);
+}
+
+.status-dot {
+  width: 6px;
+  height: 6px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.settings-button {
+  display: inline-flex;
+  width: 28px;
+  height: 28px;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 6px;
+  margin-right: -6px;
+  color: light-dark(#303030, #afafaf);
+  background: transparent;
+  cursor: pointer;
+}
+
+.settings-button:hover {
+  color: light-dark(#1c1c1c, #dcdcdc);
+}
+
+.settings-button:focus-visible,
+a:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+}
+
+.settings-button svg {
+  width: 16px;
+  height: 16px;
+}
+
+.status-description {
+  margin: 8px 0 0;
+  color: light-dark(#303030, #afafaf);
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.status-meta {
+  margin-top: 8px;
+  color: light-dark(#414141, #8f8f8f);
+  font-size: 11px;
+  line-height: 16px;
+}
+
+.status-meta p {
+  margin: 0;
+}
+
+.truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.open-sidepanel-button {
+  height: 32px;
+  border: 1px solid light-dark(#d9d9d9, #4f4f4f);
+  border-radius: 6px;
+  background: light-dark(#ffffff, #212121);
+  color: inherit;
+}

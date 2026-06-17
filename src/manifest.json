@@ -1,0 +1,55 @@
+{
+  "update_url": "https://clients2.google.com/service/update2/crx",
+  "manifest_version": 3,
+  "name": "Codex (OS Extension)",
+  "description": "Control Chrome with Codex.",
+  "version": "1.1.13",
+  "icons": {
+    "16": "images/icon16.png",
+    "32": "images/icon32.png",
+    "48": "images/icon48.png",
+    "128": "images/icon128.png"
+  },
+  "action": {
+    "default_icon": {
+      "16": "images/icon16.png",
+      "32": "images/icon32.png",
+      "48": "images/icon48.png",
+      "128": "images/icon128.png"
+    },
+    "default_popup": "popup.html",
+    "default_title": "Codex (OS Extension)"
+  },
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'none'; connect-src 'self' http://127.0.0.1:* http://localhost:* ws://127.0.0.1:* ws://localhost:*; font-src 'self' https://cdn.openai.com;"
+  },
+  "host_permissions": ["<all_urls>"],
+  "permissions": [
+    "alarms",
+    "bookmarks",
+    "debugger",
+    "downloads",
+    "downloads.ui",
+    "favicon",
+    "history",
+    "nativeMessaging",
+    "notifications",
+    "readingList",
+    "scripting",
+    "sessions",
+    "storage",
+    "tabGroups",
+    "tabs",
+    "topSites"
+  ],
+  "web_accessible_resources": [
+    {
+      "matches": ["<all_urls>"],
+      "resources": ["images/cursor-chat.png"]
+    }
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": []
+}
