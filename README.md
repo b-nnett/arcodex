@@ -10,11 +10,10 @@ Arcodex keeps the same extension ID and native bridge contract while fixing Arc 
 
 ## Install
 
-Use the prebuilt release:
+Download the prebuilt release from [Arcodex Extension 1.1.14](https://github.com/b-nnett/arcodex/releases/tag/v1.1.14):
 
-```text
-releases/1.1.14/codex-os-extension-1.1.14.zip
-```
+- [codex-os-extension-1.1.14.zip](https://github.com/b-nnett/arcodex/releases/download/v1.1.14/codex-os-extension-1.1.14.zip)
+- [SHA-256 checksum](https://github.com/b-nnett/arcodex/releases/download/v1.1.14/codex-os-extension-1.1.14.zip.sha256)
 
 1. Open `chrome://extensions`.
 2. Turn on `Developer mode`.
@@ -43,6 +42,12 @@ Build a fresh release:
 
 ```sh
 npm run package:release
+```
+
+The local release artifact is written to:
+
+```text
+releases/1.1.14/codex-os-extension-1.1.14.zip
 ```
 
 Load the unpacked build from:
