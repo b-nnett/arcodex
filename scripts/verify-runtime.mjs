@@ -23,7 +23,9 @@ const CHROME_BINARY =
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const extensionDir = path.resolve(scriptDir, "..");
-const distDir = path.resolve(extensionDir, "dist");
+const distDir = process.env.EXTENSION_DIR
+  ? path.resolve(process.env.EXTENSION_DIR)
+  : path.resolve(extensionDir, "dist");
 const nativeHostManifestPath = path.join(
   os.homedir(),
   "Library/Application Support/Google/Chrome/NativeMessagingHosts/com.openai.codexextension.json",
@@ -40,6 +42,9 @@ async function main() {
       `Build output not found at ${distDir}. Run npm run build first.`,
     );
   }
+  const loadedManifest = JSON.parse(
+    await readFile(path.join(distDir, "manifest.json"), "utf8"),
+  );
 
   const tempRoot = await mkdtemp(
     path.join(os.tmpdir(), "codex-extension-runtime-"),
@@ -116,7 +121,7 @@ async function main() {
     );
     record("Popup shows native host status", () => {
       assertIncludes(popupText, "Codex");
-      assertIncludes(popupText, "Version v1.1.13");
+      assertIncludes(popupText, `Version v${loadedManifest.version}`);
       if (!/\b(Connected|Disconnected)\b/u.test(popupText)) {
         throw new Error(
           `Popup text did not include a connected/disconnected state: ${popupText}`,
@@ -290,23 +295,23 @@ async function main() {
     );
     const restoredFavicon = await readFaviconState(popup, tabId);
     record("Favicon badges apply and restore", () => {
-      if (badgedFavicon.pageIcon?.badged != null) {
-        throw new Error(
-          `Page favicon was rewritten: ${JSON.stringify(badgedFavicon)}`,
-        );
-      }
-      if (badgedFavicon.managedIcon?.badged !== "true") {
+      const badgeLink = badgedFavicon.managedIcon;
+      if (badgeLink?.badged !== "true") {
         throw new Error(
           `Favicon was not badged: ${JSON.stringify(badgedFavicon)}`,
         );
       }
+      if (!decodeURIComponent(badgeLink.href).includes('fill="#22c55e"')) {
+        throw new Error(`Deliverable badge color missing: ${badgeLink.href}`);
+      }
+      const badgeMode =
+        badgeLink.managed === "true" ? "managed-link" : "page-rewrite";
       if (
-        !decodeURIComponent(badgedFavicon.managedIcon.href).includes(
-          'fill="#22c55e"',
-        )
+        badgeMode === "managed-link" &&
+        badgedFavicon.pageIcon?.badged != null
       ) {
         throw new Error(
-          `Deliverable badge color missing: ${badgedFavicon.managedIcon.href}`,
+          `Managed favicon mode rewrote page favicon: ${JSON.stringify(badgedFavicon)}`,
         );
       }
       if (restoredFavicon.managedIcon != null) {
@@ -314,12 +319,20 @@ async function main() {
           `Favicon badge was not restored: ${JSON.stringify(restoredFavicon)}`,
         );
       }
-      if (restoredFavicon.pageIcon?.href !== badgedFavicon.pageIcon?.href) {
+      if (restoredFavicon.pageIcon?.badged != null) {
+        throw new Error(
+          `Favicon badge metadata remained after restore: ${JSON.stringify(restoredFavicon)}`,
+        );
+      }
+      if (
+        badgeMode === "managed-link" &&
+        restoredFavicon.pageIcon?.href !== badgedFavicon.pageIcon?.href
+      ) {
         throw new Error(
           `Page favicon changed after restore: ${JSON.stringify(restoredFavicon)}`,
         );
       }
-      return { badgedFavicon, restoredFavicon };
+      return { badgeMode, badgedFavicon, restoredFavicon };
     });
 
     const cdpResult = await evaluate(
