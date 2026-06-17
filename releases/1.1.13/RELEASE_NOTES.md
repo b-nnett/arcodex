@@ -31,10 +31,13 @@ npm test
 npm audit --audit-level=high --omit=optional
 npm run package:release
 VERIFY_APP_SERVER=1 npm run verify:runtime
+CHROME_BINARY="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" VERIFY_APP_SERVER=1 npm run verify:runtime
 ```
 
 Runtime verifier checks passed:
 
+- Chrome for Testing and Google Chrome Stable both load and run the extension.
+- Stable Chrome preserves the fixed extension ID through `Extensions.loadUnpacked`.
 - Popup shows connected native-host status.
 - `GET_NATIVE_HOST_STATUS` works.
 - Side panel/app-server message path responds with the expected side-panel-closed state.
@@ -50,6 +53,8 @@ For local Arc or Chrome testing, load unpacked from:
 ```text
 /Users/bennett/Documents/Projects/arcodex/dist
 ```
+
+For release installs, use `codex-os-extension-1.1.13.zip`.
 
 For Codex connectivity, refresh the native bridge if needed:
 
