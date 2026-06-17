@@ -2,6 +2,12 @@
 
 Local Chrome/Arc extension for connecting Codex to the browser.
 
+## What It Fixes
+
+The official Codex Chrome extension connects in Arc and can run JavaScript on existing tabs, but its `createTab` flow hangs in Arc after opening blank tabs.
+
+Arcodex keeps the same extension ID and native bridge contract while fixing Arc tab creation, restoring normal foreground/background tab control, and avoiding favicon flicker during tab status updates.
+
 ## Install
 
 Use the prebuilt release:

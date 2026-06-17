@@ -9,6 +9,7 @@
     "includes": [
       "**",
       "!dist",
+      "!extension_downloads",
       "!node_modules",
       "!releases",
       "!scripts/codex-native-host-bridge-bin"
